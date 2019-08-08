@@ -1,0 +1,25 @@
+{
+  "name": "figmafy",
+  "version": "0.0.1",
+  "description": "Tool to transform design tokens from figma to any format for any platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "figma",
+    "design",
+    "tokens",
+    "design",
+    "tokens"
+  ],
+  "author": "Vitaliy Vaskiv",
+  "license": "MIT",
+  "devDependencies": {
+    "fs": "0.0.1-security",
+    "lodash.camelcase": "^4.3.0",
+    "lodash.kebabcase": "^4.1.1",
+    "node-fetch": "^2.6.0",
+    "tinycolor2": "^1.4.1"
+  }
+}
