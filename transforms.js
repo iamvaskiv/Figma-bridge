@@ -1,33 +1,33 @@
 const tinycolor = require('tinycolor2');
-const camelCase = require('lodash.camelcase');
+
 
 module.exports = {
-  'string:string': {
+  'string/string': {
     type: 'string',
     predicate: () => true,
     transform: value => `"${value}"`
   },
-  'rem:points/CGFloat': {
+  'CGFloat:rem/points': {
     type: 'size',
     predicate: value => value.includes('rem'),
     transform: value => `CGFloat(${value.replace('rem', '')*16})`
   },
-  'px:points/CGFloat': {
+  'CGFloat:px/points': {
     type: 'size',
     predicate: value => value.includes('px'),
     transform: value => `CGFloat(${value.replace('px', '')})`
   },
-  'digits:points/CGFloat': {
+  'CGFloat:digits/points': {
     type: 'size',
     predicate: value => /^\d+$/.test(value),
     transform: value => `CGFloat(${value})`
   },
-  'percentage:float/CGFloat': {
+  'CGFloat:percentage/float': {
     type: 'size',
     predicate: value => /%/.test(value),
     transform: value => `CGFloat(${parseFloat(value.replace('%', '')/100)})`
   },
-  'hex:rgba/UIColor': {
+  'UIColor:hex/rgba': {
     type: 'color',
     predicate: value => tinycolor(value).isValid() && tinycolor(value).getFormat() == 'hex',
     transform: value => {
@@ -35,34 +35,29 @@ module.exports = {
       return `UIColor(red: ${r/255}, green: ${g/255}, blue: ${b/255}, alpha: ${a})`;
     }
   },
-  'hex:hex8string/XML': {
+  'XML:hex/hex8string': {
     type: 'color',
     predicate: value => tinycolor(value).isValid() && tinycolor(value).getFormat() == 'hex',
-    transform: (value, name) => `<color name="${camelCase(name)}">${tinycolor(value).toHex8String()}</color>`
+    transform: value => `${tinycolor(value).toHex8String()}`
   },
   'XML:rem/dp': {
     type: 'size',
     predicate: value => value.includes('rem'),
-    transform: (value, name) => `<dimen name="${camelCase(name)}">${value.replace('rem', '')*16}dp</dimen>`
+    transform: value => `${value.replace('rem', '')*16}dp`
   },
   'XML:px/dp': { // TODO: add sp
     type: 'size',
     predicate: value => value.includes('px'),
-    transform: (value, name) => `<dimen name="${camelCase(name)}">${value.replace('px', '')}dp</dimen>`
+    transform: value => `${value.replace('px', '')}dp`
   },
   'XML:percentage/float-dp': {
     type: 'size',
     predicate: value => /%/.test(value),
-    transform: (value, name) => `<dimen name="${camelCase(name)}">${parseFloat(value.replace('%', '')/100)}dp</dimen>`
+    transform: value => `${parseFloat(value.replace('%', '')/100)}dp`
   },
   'XML:digits/digits': {
     type: 'size',
     predicate: value => /^\d+$/.test(value),
-    transform: (value, name) => `<dimen name="${camelCase(name)}">${value}</dimen>`
-  },
-  'XML:string/string': {
-    type: 'string',
-    predicate: () => true,
-    transform: (value, name) => `<string name="${camelCase(name)}">${value}</string>`
+    transform: value => value
   }
 }

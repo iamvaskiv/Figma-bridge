@@ -3,19 +3,28 @@ const { camelCase } = require('./util.js');
 
 module.exports = {
   // web scss
-  'scss': tokens => tokens.map(prop => `$${prop.name}: ${prop.value};`).join(`
+  'web:scss': tokens => tokens.map(prop => `$${prop.name}: ${prop.value};`).join(`
 `),
   // ios swift
-  'ios': tokens => `import UIKit
+  'ios:swift': tokens => `import UIKit
 
 struct Styles {${tokens.map(prop => `
     static let ${camelCase(prop.name)} = ${prop.value}`).join('')}
 }
 `,
   //android xml
-  'android': tokens => `<?xml version="1.0" encoding="UTF-8"?>
+  'android:xml': tokens => `<?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    ${tokens.map(prop => prop.value).join(`
+    ${tokens.map(prop => {
+      switch (prop.type) {
+        case 'color':
+          return `<color name="${camelCase(prop.name)}">${prop.value}</color>`;
+        case 'size':
+          return `<dimen name="${camelCase(prop.name)}">${prop.value}</dimen>`;
+        case 'string':
+          return `<string name="${camelCase(prop.name)}">${prop.value}</string>`;
+      }
+    }).join(`
     `)}
 </resources>`
 }
