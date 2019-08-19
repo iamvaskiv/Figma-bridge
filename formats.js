@@ -1,4 +1,4 @@
-const { camelCase } = require('./util.js');
+const { camelCase, kebabCase } = require('./util.js');
 
 
 module.exports = {

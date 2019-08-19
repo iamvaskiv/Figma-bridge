@@ -5,13 +5,14 @@ const transforms = require('./transforms.js');
 const formats    = require('./formats.js');
 const platforms  = require('./platforms.js');
 
-const { camelCase, kebabCase } = require('./util.js');
+const { camelCase, kebabCase, tinycolor } = require('./util.js');
 
 const figmaURL   = 'https://api.figma.com/v1/files/';
 
 
 class Figmafy {
   constructor() {
+    this.basicTokens = false;
     this.endpoint      = null;
     this.accessToken   = null;
     this.tokens        = null;
@@ -33,6 +34,12 @@ class Figmafy {
     return tinycolor(str);
   }
 
+  useBasicTokens() {
+    this.basicTokens = true;
+
+    return this;
+  }
+
   setFigmaId(id) {
     this.endpoint = figmaURL + id;
 
@@ -48,9 +55,9 @@ class Figmafy {
 
   transformValue(value, type, name) {
     let val = value;
-
+    
     this.platforms[this.buildPlatform].forEach((key) => {
-      if (this.transforms[key].type === type && this.transforms[key].predicate(val)) {
+      if (this.transforms[key].type.includes(type) && this.transforms[key].predicate(value)) {
         val = this.transforms[key].transform(val, name);
       }
     });
@@ -59,9 +66,119 @@ class Figmafy {
   }
 
 
+  getColorToken(template, layer) {
+    const { r, g, b, a } = layer.fills[0].color;
+    const _value = tinycolor({r: r * 255, g: g * 255, b: b * 255, a: a * 255}).toHexString();
+
+    return [Object.assign(template, {_value})];
+  }
+
+  getFontToken(temp, layer) {
+    const self = this;
+    const style = layer.style;
+
+    const family = {
+      name: `${layer.name.replace('$', '')}-font-family`,
+      type: 'string',
+      _value: style.fontFamily,
+      category: temp.category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+
+    const size = {
+      name: `${layer.name.replace('$', '')}-font-size`,
+      type: 'size',
+      _value: `${style.fontSize}px`,
+      category: temp.category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+
+    const weight = {
+      name: `${layer.name.replace('$', '')}-font-weight`,
+      type: 'size',
+      _value: style.fontWeight,
+      category: temp.category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+
+    const lineHeight = {
+      name: `${layer.name.replace('$', '')}-line-height`,
+      type: 'size',
+      _value: `${style.lineHeightPx}px`,
+      category: temp.category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+
+    const spacing = {
+      name: `${layer.name.replace('$', '')}-letter-spacing`,
+      type: style.letterSpacing !== 0 ? 'size' : 'string',
+      _value: style.letterSpacing !== 0 ? `${style.lineHeightPx}px` : 'normal',
+      category: temp.category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+    
+    return [family, size, weight, lineHeight, spacing];
+  }
+
+  formatToken(layer, type, category) {
+    const self = this;
+    let tokens = [];
+
+    const defaultToken = {
+      name: layer.name.replace('$', ''),
+      type: type,
+      _value: layer.characters,
+      category: category,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name);
+      }
+    };
+
+    if (this.basicTokens) {
+      return [defaultToken];
+    }
+
+    switch (type) {
+      case 'color':
+        this.getColorToken(defaultToken, layer).forEach(token => {
+          tokens.push(token);
+        });
+        break;
+
+      case 'typography':
+
+        this.getFontToken(defaultToken, layer).forEach(token => {
+          tokens.push(token);
+        });
+        break;
+    
+      default:
+        tokens.push(defaultToken);
+    }
+
+
+    return tokens;
+  }
+
+
   parseTokens(pages) {
     const props = [];
-    const self  = this;
 
     pages.forEach(page => {
       page.children.forEach(artboard => {
@@ -73,18 +190,9 @@ class Figmafy {
           group.children.forEach(layer => {
             if (layer.name[0] !== '$') return;
 
-            let token = {
-              name: layer.name.substr(1),
-              type: group.name,
-              _value: layer.characters,
-              category: artboard.name,
-
-              get value() {
-                return self.transformValue(this._value, this.type, this.name);
-              }
-            };
-
-            props.push(token);
+            this.formatToken(layer, group.name, artboard.name).forEach(token => {
+              props.push(token);
+            });
           });
         });
       })
@@ -94,8 +202,8 @@ class Figmafy {
   }
 
   async getTokens() {
-    if (!this.accessToken) throw console.error('access token has not been set');
-    if (!this.endpoint) throw console.error('figma ID has not been set');
+    if (!this.accessToken) throw new Error('access token has not been set');
+    if (!this.endpoint) throw new Error('figma ID has not been set');
 
     const result = await fetch(this.endpoint, {
       method: "GET",
