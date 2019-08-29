@@ -1,5 +1,20 @@
 module.exports = {
-  'web:scss': [],
-  'ios:swift': ['CGFloat:rem/points', 'CGFloat:px/points', 'CGFloat:digits/points', 'CGFloat:percentage/float', 'UIColor:hex/rgba', 'string/string'],
-  'android:xml': ['XML:hex/hex8string', 'XML:rem/dp', 'XML:px/dp', 'XML:percentage/float-dp', 'XML:digits/digits', 'string/string']
+  'web:scss': {
+    'Typography': [],
+    'Colors': [],
+    'Shadows':  [],
+    'Spacings': []
+  },
+  'ios:swift': {
+    'Typography': ['CGFloat:rem/points', 'CGFloat:px/points', 'CGFloat:digits/points', 'CGFloat:percentage/float', 'string/string'],
+    'Colors': ['UIColor:hex/rgba'],
+    'Shadows': [],
+    'Spacings': []
+  },
+  'android:xml': {
+    'Typography': ['XML:rem/sp', 'XML:px/sp', 'XML:percentage/float-dp', 'XML:digits/digits', 'string/string'],
+    'Colors': ['XML:hex/hex8string'],
+    'Shadows': [],
+    'Spacings': []
+  }
 }

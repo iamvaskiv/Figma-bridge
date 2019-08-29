@@ -12,7 +12,7 @@ const figmaURL   = 'https://api.figma.com/v1/files/';
 
 class Figmafy {
   constructor() {
-    this.basicTokens = false;
+    this.basicTokens   = false;
     this.endpoint      = null;
     this.accessToken   = null;
     this.tokens        = null;
@@ -53,14 +53,18 @@ class Figmafy {
   }
 
 
-  transformValue(value, type, name) {
+  transformValue(value, type, name, category) {
     let val = value;
+
+    console.log(1, this.platforms[this.buildPlatform][category]);
     
-    this.platforms[this.buildPlatform].forEach((key) => {
-      if (this.transforms[key].type.includes(type) && this.transforms[key].predicate(value)) {
+    
+    this.platforms[this.buildPlatform][category].forEach((key) => {
+      if (this.transforms[key].type === type && this.transforms[key].predicate(value)) {
         val = this.transforms[key].transform(val, name);
       }
     });
+
 
     return val;
   }
@@ -70,7 +74,7 @@ class Figmafy {
     const { r, g, b, a } = layer.fills[0].color;
     const _value = tinycolor({r: r * 255, g: g * 255, b: b * 255, a: a * 255}).toHexString();
 
-    return [Object.assign(template, {_value})];
+    return [Object.assign(template, {type: 'color', _value: _value})];
   }
 
   getFontToken(temp, layer) {
@@ -84,7 +88,7 @@ class Figmafy {
       category: temp.category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
 
@@ -95,7 +99,7 @@ class Figmafy {
       category: temp.category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
 
@@ -106,7 +110,7 @@ class Figmafy {
       category: temp.category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
 
@@ -117,7 +121,7 @@ class Figmafy {
       category: temp.category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
 
@@ -128,25 +132,25 @@ class Figmafy {
       category: temp.category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
     
     return [family, size, weight, lineHeight, spacing];
   }
 
-  formatToken(layer, type, category) {
+  formatToken(layer, category) {
     const self = this;
     let tokens = [];
 
     const defaultToken = {
       name: layer.name.replace('$', ''),
-      type: type,
+      type: null,
       _value: layer.characters,
       category: category,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name);
+        return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
 
@@ -154,14 +158,14 @@ class Figmafy {
       return [defaultToken];
     }
 
-    switch (type) {
-      case 'color':
+    switch (category) {
+      case 'Colors':
         this.getColorToken(defaultToken, layer).forEach(token => {
           tokens.push(token);
         });
         break;
 
-      case 'typography':
+      case 'Typography':
 
         this.getFontToken(defaultToken, layer).forEach(token => {
           tokens.push(token);
@@ -190,7 +194,7 @@ class Figmafy {
           group.children.forEach(layer => {
             if (layer.name[0] !== '$') return;
 
-            this.formatToken(layer, group.name, artboard.name).forEach(token => {
+            this.formatToken(layer, group.name).forEach(token => {
               props.push(token);
             });
           });
