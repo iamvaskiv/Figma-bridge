@@ -67,12 +67,14 @@ class Figmafy {
 
   getShadowToken(template, layer) {
     const val = layer.effects.map((effect) => {
-      if (effect.type === 'DROP_SHADOW') {
+      if (effect.type === 'DROP_SHADOW' || effect.type === 'INNER_SHADOW') {
+        const inner = effect.type === 'INNER_SHADOW';
         const { r, g, b, a } = effect.color;
         const color = tinycolor({r, g, b, a});
 
-        return `${effect.offset.x} ${effect.offset.y} ${effect.radius}px ${color}`;
+        return `${inner ? 'inset ' : ''}${effect.offset.x} ${effect.offset.y} ${effect.radius}px ${color}`;
       }
+
     });
 
     return [Object.assign(template, {type: 'shadow', _value: val})];
