@@ -55,9 +55,6 @@ class Figmafy {
 
   transformValue(value, type, name, category) {
     let val = value;
-
-    console.log(1, this.platforms[this.buildPlatform][category]);
-    
     
     this.platforms[this.buildPlatform][category].forEach((key) => {
       if (this.transforms[key].type === type && this.transforms[key].predicate(value)) {
@@ -65,8 +62,26 @@ class Figmafy {
       }
     });
 
-
     return val;
+  }
+
+  getShadowToken(template, layer) {
+    const val = layer.effects.map((effect) => {
+      if (effect.type === 'DROP_SHADOW') {
+        const { r, g, b, a } = effect.color;
+        const color = tinycolor({r, g, b, a});
+
+        return `${effect.offset.x} ${effect.offset.y} ${effect.radius}px ${color}`;
+      }
+    });
+
+    return [Object.assign(template, {type: 'shadow', _value: val})];
+  }
+
+  getSpacingToken(template, layer) {
+    const val = `${layer.absoluteBoundingBox.height}px`;
+    
+    return [Object.assign(template, {type: 'size', _value:  val})];
   }
 
 
@@ -159,6 +174,7 @@ class Figmafy {
     }
 
     switch (category) {
+
       case 'Colors':
         this.getColorToken(defaultToken, layer).forEach(token => {
           tokens.push(token);
@@ -166,8 +182,19 @@ class Figmafy {
         break;
 
       case 'Typography':
-
         this.getFontToken(defaultToken, layer).forEach(token => {
+          tokens.push(token);
+        });
+        break;
+
+      case 'Spacings': 
+        this.getSpacingToken(defaultToken, layer).forEach(token => {
+          tokens.push(token);
+        });
+        break;
+
+      case 'Shadows': 
+        this.getShadowToken(defaultToken, layer).forEach(token => {
           tokens.push(token);
         });
         break;
