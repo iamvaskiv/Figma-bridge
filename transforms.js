@@ -38,7 +38,7 @@ module.exports = {
   'XML:hex/hex8string': {
     type: 'color',
     predicate: value => tinycolor(value).isValid() && tinycolor(value).getFormat() == 'hex',
-    transform: value => `${tinycolor(value).toHex8String()}`
+    transform: value => `#${tinycolor(value).toHex8().substr(6) + tinycolor(value).toHex8().substr(0, 6)}`
   },
   'XML:rem/dp': {
     type: 'size',

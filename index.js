@@ -102,6 +102,7 @@ class Figmafy {
       type: 'string',
       _value: style.fontFamily,
       category: temp.category,
+      page: temp.page,
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
@@ -113,6 +114,7 @@ class Figmafy {
       type: 'size',
       _value: `${style.fontSize}px`,
       category: temp.category,
+      page: temp.page,
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
@@ -124,6 +126,7 @@ class Figmafy {
       type: 'size',
       _value: style.fontWeight,
       category: temp.category,
+      page: temp.page,      
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
@@ -135,6 +138,19 @@ class Figmafy {
       type: 'size',
       _value: `${style.lineHeightPx}px`,
       category: temp.category,
+      page: temp.page,
+
+      get value() {
+        return self.transformValue(this._value, this.type, this.name, this.category);
+      }
+    };
+
+    const lineSpacingExtra = {
+      name: `${layer.name.replace('$', '')}-line-spacing-extra`,
+      type: 'size',
+      _value: `${style.lineHeightPx - style.fontSize}px`,
+      category: temp.category,
+      page: temp.page,
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
@@ -146,16 +162,17 @@ class Figmafy {
       type: style.letterSpacing !== 0 ? 'size' : 'string',
       _value: style.letterSpacing !== 0 ? `${style.lineHeightPx}px` : 'normal',
       category: temp.category,
+      page: temp.page,
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
       }
     };
     
-    return [family, size, weight, lineHeight, spacing];
+    return [family, size, weight, lineHeight, lineSpacingExtra, spacing];
   }
 
-  formatToken(layer, category) {
+  formatToken(layer, category, page) {
     const self = this;
     let tokens = [];
 
@@ -164,6 +181,7 @@ class Figmafy {
       type: null,
       _value: layer.characters,
       category: category,
+      page: page.name,
 
       get value() {
         return self.transformValue(this._value, this.type, this.name, this.category);
@@ -210,20 +228,51 @@ class Figmafy {
 
 
   parseTokens(pages) {
-    const props = [];
+    const props = {
+      typography: [],
+      colors: [],
+      spacings: [],
+      shadows: []
+    };
 
     pages.forEach(page => {
       page.children.forEach(artboard => {
         if (artboard.name[0] === '_') return;
 
         artboard.children.forEach(group => {
+          
           if (group.type !== 'GROUP') return;
+
 
           group.children.forEach(layer => {
             if (layer.name[0] !== '$') return;
 
-            this.formatToken(layer, group.name).forEach(token => {
-              props.push(token);
+            this.formatToken(layer, group.name, page).forEach(token => {
+              
+              //props.push(token);
+
+
+              switch (group.name) {
+
+                case 'Colors':
+                  props.colors.push(token);
+                  break;
+          
+                case 'Typography':
+                  props.typography.push(token);
+                  break;
+          
+                case 'Spacings': 
+                  props.spacings.push(token);
+                  break;
+          
+                case 'Shadows': 
+                  props.shadows.push(token);
+                  break;
+              
+                default:
+                  throw console.log('There is no such Type of tokens!');
+              }
             });
           });
         });
@@ -247,6 +296,7 @@ class Figmafy {
     const figmaTreeStructure = await result.json();
     const designTokens = this.parseTokens(figmaTreeStructure.document.children);
 
+    
     this.tokens = designTokens;
     return designTokens;
   }
@@ -268,11 +318,26 @@ class Figmafy {
       if (!platform) throw console.log(`There is no such platform as ${this.buildPlatform}`);
 
       console.log(`transforming raw design tokens for ${item.platform}...`);
-      const designTokens = platform(this.tokens);
-      console.log('design tokens has been transformed');
-      console.log('writing...');
 
-      fs.writeFile(item.dest, designTokens, err => {
+      //const designTokens = platform(this.tokens);
+      
+      // writing typography
+      fs.writeFile(`${item.dest + 'Typography'}.${item.platform.split(':')[1]}`, platform(this.tokens.typography), err => {
+        if (err) console.log('Error writing file', err)
+      });
+
+      // writing colors
+      fs.writeFile(`${item.dest + 'Colors'}.${item.platform.split(':')[1]}`, platform(this.tokens.colors), err => {
+        if (err) console.log('Error writing file', err)
+      });
+
+      // writing spacings
+      fs.writeFile(`${item.dest + 'Spacings'}.${item.platform.split(':')[1]}`, platform(this.tokens.spacings), err => {
+        if (err) console.log('Error writing file', err)
+      });
+
+      // writing shadows
+      fs.writeFile(`${item.dest + 'Shadows'}.${item.platform.split(':')[1]}`, platform(this.tokens.shadows), err => {
         if (err) console.log('Error writing file', err)
       });
 
