@@ -322,22 +322,22 @@ class Figmafy {
       //const designTokens = platform(this.tokens);
       
       // writing typography
-      fs.writeFile(`${item.dest + 'Typography'}.${item.platform.split(':')[1]}`, platform(this.tokens.typography), err => {
+      fs.writeFile(`${item.dest + 'typography'}.${item.platform.split(':')[1]}`, platform(this.tokens.typography), err => {
         if (err) console.log('Error writing file', err)
       });
 
       // writing colors
-      fs.writeFile(`${item.dest + 'Colors'}.${item.platform.split(':')[1]}`, platform(this.tokens.colors), err => {
+      fs.writeFile(`${item.dest + 'colors'}.${item.platform.split(':')[1]}`, platform(this.tokens.colors), err => {
         if (err) console.log('Error writing file', err)
       });
 
       // writing spacings
-      fs.writeFile(`${item.dest + 'Spacings'}.${item.platform.split(':')[1]}`, platform(this.tokens.spacings), err => {
+      fs.writeFile(`${item.dest + 'spacings'}.${item.platform.split(':')[1]}`, platform(this.tokens.spacings), err => {
         if (err) console.log('Error writing file', err)
       });
 
       // writing shadows
-      fs.writeFile(`${item.dest + 'Shadows'}.${item.platform.split(':')[1]}`, platform(this.tokens.shadows), err => {
+      fs.writeFile(`${item.dest + 'shadows'}.${item.platform.split(':')[1]}`, platform(this.tokens.shadows), err => {
         if (err) console.log('Error writing file', err)
       });
 
