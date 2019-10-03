@@ -271,7 +271,7 @@ class Figmafy {
                   break;
               
                 default:
-                  throw console.log('There is no such Type of tokens!');
+                  //throw console.log('There is no such Type of tokens!');
               }
             });
           });
