@@ -1,6 +1,6 @@
 {
   "name": "figma-bridge",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Tool to transform design tokens from figma to any format for any platform",
   "main": "index.js",
   "scripts": {

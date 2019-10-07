@@ -57,7 +57,7 @@ module.exports = {
   },
   'XML:px/sp': {
     type: 'size',
-    predicate: value => /px/.test(value),
+    predicate: (value, fontSize) => /px/.test(value) && !fontSize,
     transform: value => `${value.replace('px', '')}sp`
   },
   'XML:percentage/float-dp': {
@@ -69,5 +69,10 @@ module.exports = {
     type: 'size',
     predicate: value => /^\d+$/.test(value),
     transform: value => value
+  },
+  'XML:px/em(letterspacing)': {
+    type: 'size',
+    predicate: (value, fontSize) => !!fontSize && /px/.test(value),
+    transform: (value, name, fontSize) => `${value.replace('px', '')/fontSize*100}`
   }
 }

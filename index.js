@@ -53,12 +53,12 @@ class Figmafy {
   }
 
 
-  transformValue(value, type, name, category) {
+  transformValue(value, type, name, category, fontSize) {
     let val = value;
     
     this.platforms[this.buildPlatform][category].forEach((key) => {
-      if (this.transforms[key].type === type && this.transforms[key].predicate(value)) {
-        val = this.transforms[key].transform(val, name);
+      if (this.transforms[key].type === type && this.transforms[key].predicate(value, fontSize)) {
+        val = this.transforms[key].transform(val, name, fontSize);
       }
     });
 
@@ -160,12 +160,13 @@ class Figmafy {
     const spacing = {
       name: `${layer.name.replace('$', '')}-letter-spacing`,
       type: style.letterSpacing !== 0 ? 'size' : 'string',
-      _value: style.letterSpacing !== 0 ? `${style.lineHeightPx}px` : 'normal',
+      _value: style.letterSpacing !== 0 ? `${style.letterSpacing}px` : 'normal',
       category: temp.category,
       page: temp.page,
+      fontSize: style.fontSize,
 
       get value() {
-        return self.transformValue(this._value, this.type, this.name, this.category);
+        return self.transformValue(this._value, this.type, this.name, this.category, this.fontSize);
       }
     };
     

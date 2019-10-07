@@ -12,7 +12,7 @@ module.exports = {
     'Spacings': ['CGFloat:px/points']
   },
   'android:xml': {
-    'Typography': ['XML:rem/sp', 'XML:px/sp', 'XML:percentage/float-dp', 'XML:digits/digits', 'string/string'],
+    'Typography': ['XML:px/em(letterspacing)', 'XML:rem/sp', 'XML:px/sp', 'XML:percentage/float-dp', 'XML:digits/digits', 'string/string'],
     'Colors': ['XML:hex/hex8string'],
     'Shadows': [],
     'Spacings': ['XML:px/dp']
