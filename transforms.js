@@ -73,6 +73,6 @@ module.exports = {
   'XML:px/em(letterspacing)': {
     type: 'size',
     predicate: (value, fontSize) => !!fontSize && /px/.test(value),
-    transform: (value, name, fontSize) => `${value.replace('px', '')/fontSize*100}`
+    transform: (value, name, fontSize) => `${value.replace('px', '')/fontSize}`
   }
 }

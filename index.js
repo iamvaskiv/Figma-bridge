@@ -5,7 +5,7 @@ const transforms = require('./transforms.js');
 const formats    = require('./formats.js');
 const platforms  = require('./platforms.js');
 
-const { camelCase, kebabCase, tinycolor } = require('./util.js');
+const { camelCase, kebabCase, tinycolor, snakeCase } = require('./util.js');
 
 const figmaURL   = 'https://api.figma.com/v1/files/';
 
@@ -20,6 +20,8 @@ class Figmafy {
     this.transforms    = transforms || null;
     this.formats       = formats || null;
     this.platforms     = platforms || null;
+    this.droidFonts    = [];
+    this.androidFonts  = false;
   }
 
   static camelCase(str) {
@@ -34,8 +36,18 @@ class Figmafy {
     return tinycolor(str);
   }
 
+  static snakeCase(str) {
+    return snakeCase(str);
+  }
+
   useBasicTokens() {
     this.basicTokens = true;
+
+    return this;
+  }
+
+  enableAndroidFonts() {
+    this.androidFonts = true;
 
     return this;
   }
@@ -71,7 +83,7 @@ class Figmafy {
         const inner = effect.type === 'INNER_SHADOW';
         const color = tinycolor({...effect.color});
 
-        return `${inner ? 'inset ' : ''}${effect.offset.x} ${effect.offset.y} ${effect.radius}px ${color}`;
+        return `${inner ? 'inset ' : ''}${effect.offset.x}px ${effect.offset.y}px ${effect.radius}px ${color}`;
       }
 
     });
@@ -91,6 +103,27 @@ class Figmafy {
     const _value = tinycolor({r: r * 255, g: g * 255, b: b * 255, a: a * 255}).toHexString();
 
     return [Object.assign(template, {type: 'color', _value: _value})];
+  }
+
+  // getDroidFonts(layer) {
+  //   return {
+  //     name: `${layer.name.replace('$', '')}`,
+  //     family: layer.style.fontFamily,
+  //     size: layer.style.fontSize + "sp",
+  //     weight: layer.style.fontWeight,
+  //     lineSpacingExtra: layer.style.lineHeightPx - layer.style.fontSize,
+  //     letterSpacing: layer.style.letterSpacing !== 0 ? `${layer.style.letterSpacing}px` : 'normal',
+  //   };
+  // }
+
+  getDroidFonts(layer) {
+    return {
+      name: camelCase(`${layer.name.replace('$', '')}`),
+      family: snakeCase(`${layer.name.replace('$', '')}_${layer.style.fontWeight}`),
+      size: camelCase(`${layer.name.replace('$', '')}-font-size`),
+      lineSpacingExtra: camelCase(`${layer.name.replace('$', '')}-line-spacing-extra`),
+      letterSpacing: camelCase(`${layer.name.replace('$', '')}-letter-spacing`),
+    };
   }
 
   getFontToken(temp, layer) {
@@ -159,8 +192,8 @@ class Figmafy {
 
     const spacing = {
       name: `${layer.name.replace('$', '')}-letter-spacing`,
-      type: style.letterSpacing !== 0 ? 'size' : 'string',
-      _value: style.letterSpacing !== 0 ? `${style.letterSpacing}px` : 'normal',
+      type: 'size',
+      _value: `${style.letterSpacing}px`,
       category: temp.category,
       page: temp.page,
       fontSize: style.fontSize,
@@ -193,6 +226,7 @@ class Figmafy {
       return [defaultToken];
     }
 
+
     switch (category) {
 
       case 'Colors':
@@ -202,7 +236,10 @@ class Figmafy {
         break;
 
       case 'Typography':
-        this.getFontToken(defaultToken, layer).forEach(token => {
+        let fontToken = this.getFontToken(defaultToken, layer);
+
+        this.droidFonts.push(this.getDroidFonts(layer));
+        fontToken.forEach(token => {
           tokens.push(token);
         });
         break;
@@ -341,6 +378,28 @@ class Figmafy {
       fs.writeFile(`${item.dest + 'shadows'}.${item.platform.split(':')[1]}`, platform(this.tokens.shadows), err => {
         if (err) console.log('Error writing file', err)
       });
+
+      if (this.androidFonts && item.platform == "android:xml") {
+        
+        const fonts = `<resources>${this.droidFonts.map((font) => {
+          return `
+    <style name="${font.name}">
+        <item name="android:textSize">@dimen/${font.size}</item>
+        <item name="android:fontFamily">@font/${font.family}</item>
+        <item name="android:lineSpacingExtra">@dimen/${font.lineSpacingExtra}</item>
+        <item name="android:letterSpacing">@dimen/${font.letterSpacing}</item>
+    </style>`;
+        }).join(``)}
+</resources>`;
+
+
+        // writing android fonts
+        fs.writeFile(`${item.dest + 'fonts.xml'}`, fonts, err => {
+          if (err) console.log('Error writing file', err)
+        });
+
+      }
+      
 
       console.log('done');
     });

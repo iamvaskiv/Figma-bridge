@@ -18,19 +18,14 @@ good, now just copy this example for now
 const figmaBridge   = require('figma-bridge');
 const fb            = new figmaBridge();
 
-// don't forget to change destinations
-const webDest   = './styles.scss'; 
-const iosDest   = './styles.swift';
-const droidDest = './styles.xml';
-
 
 fb
   .setFigmaId('OKfk1HeUOHEZjD7O7GfWku2W') // you can find it inside an URL of a Figma file
   .setAccessToken('14884-0800f174-9b25-4baf-9f0f-2ef8f00s920e') // you can get it in account settings in Figma
   .build([
-    { platform: 'web:scss', dest: webDest },
-    { platform: 'ios:swift', dest: iosDest },
-    { platform: 'android:xml', dest: droidDest }
+    { platform: 'web:scss', dest: './tokens/web/' },
+    { platform: 'ios:swift', dest: './tokens/ios/' },
+    { platform: 'android:xml', dest: './tokens/android/' }
   ]);
 
 ```

@@ -1,6 +1,6 @@
 {
   "name": "figma-bridge",
-  "version": "0.2.3",
+  "version": "0.3.8",
   "description": "Tool to transform design tokens from figma to any format for any platform",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "fs": "0.0.1-security",
     "lodash.camelcase": "^4.3.0",
     "lodash.kebabcase": "^4.1.1",
+    "lodash.snakecase": "^4.1.1",
     "node-fetch": "^2.6.0",
     "tinycolor2": "^1.4.1"
   }
